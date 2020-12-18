@@ -25,20 +25,27 @@ using Cloud = ouster_ros::Cloud;
 using Point = ouster_ros::Point;
 namespace sensor = ouster::sensor;
 
-int main(int argc, char** argv) {
+int main(int argc, char **argv)
+{
     ros::init(argc, argv, "os_cloud_node");
     ros::NodeHandle nh("~");
 
     auto tf_prefix = nh.param("tf_prefix", std::string{});
-    if (!tf_prefix.empty() && tf_prefix.back() != '/') tf_prefix.append("/");
+    if (!tf_prefix.empty() && tf_prefix.back() != '/')
+        tf_prefix.append("/");
     auto sensor_frame = tf_prefix + "os_sensor";
     auto imu_frame = tf_prefix + "os_imu";
     auto lidar_frame = tf_prefix + "os_lidar";
 
+    //sensor_name_ for service config
+    auto sensor_name = nh.param("sensor_name_", std::string{});
+    auto config_name = "/" + sensor_name + "/" + "os_config";
+
     ouster_ros::OSConfigSrv cfg{};
-    auto client = nh.serviceClient<ouster_ros::OSConfigSrv>("os_config");
-    client.waitForExistence();
-    if (!client.call(cfg)) {
+    auto client = nh.serviceClient<ouster_ros::OSConfigSrv>(config_name);
+    client.waitForExistence(ros::Duration(5));
+    if (!client.call(cfg))
+    {
         ROS_ERROR("Calling config service failed");
         return EXIT_FAILURE;
     }
@@ -59,13 +66,15 @@ int main(int argc, char** argv) {
 
     ouster::ScanBatcher batch(W, pf);
 
-    auto lidar_handler = [&](const PacketMsg& pm) mutable {
-        if (batch(pm.buf.data(), ls)) {
+    auto lidar_handler = [&](const PacketMsg &pm) mutable {
+        if (batch(pm.buf.data(), ls))
+        {
             auto h = std::find_if(
-                ls.headers.begin(), ls.headers.end(), [](const auto& h) {
+                ls.headers.begin(), ls.headers.end(), [](const auto &h) {
                     return h.timestamp != std::chrono::nanoseconds{0};
                 });
-            if (h != ls.headers.end()) {
+            if (h != ls.headers.end())
+            {
                 scan_to_cloud(xyz_lut, h->timestamp, ls, cloud);
                 lidar_pub.publish(ouster_ros::cloud_to_cloud_msg(
                     cloud, h->timestamp, sensor_frame));
@@ -73,13 +82,13 @@ int main(int argc, char** argv) {
         }
     };
 
-    auto imu_handler = [&](const PacketMsg& p) {
+    auto imu_handler = [&](const PacketMsg &p) {
         imu_pub.publish(ouster_ros::packet_to_imu_msg(p, imu_frame, pf));
     };
 
-    auto lidar_packet_sub = nh.subscribe<PacketMsg, const PacketMsg&>(
+    auto lidar_packet_sub = nh.subscribe<PacketMsg, const PacketMsg &>(
         "lidar_packets", 2048, lidar_handler);
-    auto imu_packet_sub = nh.subscribe<PacketMsg, const PacketMsg&>(
+    auto imu_packet_sub = nh.subscribe<PacketMsg, const PacketMsg &>(
         "imu_packets", 100, imu_handler);
 
     // publish transforms

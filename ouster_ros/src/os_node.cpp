@@ -107,9 +107,13 @@ int main(int argc, char** argv) {
     ros::init(argc, argv, "os_node");
     ros::NodeHandle nh("~");
 
+    //sensor_name_ for service config
+    auto sensor_name = nh.param("sensor_name_", std::string{});
+    auto config_name = "/" + sensor_name + "/" + "os_config";
+
     std::string published_metadata;
     auto srv = nh.advertiseService<OSConfigSrv::Request, OSConfigSrv::Response>(
-        "os_config", [&](OSConfigSrv::Request&, OSConfigSrv::Response& res) {
+        config_name, [&](OSConfigSrv::Request&, OSConfigSrv::Response& res) {
             if (published_metadata.size()) {
                 res.metadata = published_metadata;
                 return true;
