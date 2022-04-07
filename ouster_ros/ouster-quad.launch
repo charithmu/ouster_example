@@ -1,0 +1,28 @@
+<launch>
+    <arg name="mode" default="1024x10" />
+
+    <include file="$(find ouster_ros)/ousterchild.launch">
+        <arg name="sensor_name" value="sensor1" />
+        <arg name="sensor_hostname" value="10.10.10.101" />
+        <arg name="lidar_mode" value="$(arg mode)" />
+    </include>
+
+    <include file="$(find ouster_ros)/ousterchild.launch">
+        <arg name="sensor_name" value="sensor2" />
+        <arg name="sensor_hostname" value="10.10.10.102" />
+        <arg name="lidar_mode" value="$(arg mode)" />
+    </include>
+
+    <include file="$(find ouster_ros)/ousterchild.launch">
+        <arg name="sensor_name" value="sensor3" />
+        <arg name="sensor_hostname" value="10.10.10.103" />
+        <arg name="lidar_mode" value="$(arg mode)" />
+    </include>
+
+    <include file="$(find ouster_ros)/ousterchild.launch">
+        <arg name="sensor_name" value="sensor4" />
+        <arg name="sensor_hostname" value="10.10.10.104" />
+        <arg name="lidar_mode" value="$(arg mode)" />
+    </include>
+
+</launch>
